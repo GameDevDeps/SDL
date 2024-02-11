@@ -1057,6 +1057,7 @@ JNIEXPORT void JNICALL SDL_JAVA_INTERFACE(onNativeSurfaceChanged)(JNIEnv *env, j
     SDL_LockMutex(Android_ActivityMutex);
 
 #ifdef SDL_VIDEO_OPENGL_EGL
+#if !defined(SDL_RENDER_DISABLED) || !(SDL_RENDER_DISABLED)
     if (Android_Window) {
         SDL_VideoDevice *_this = SDL_GetVideoDevice();
         SDL_WindowData *data = (SDL_WindowData *)Android_Window->driverdata;
@@ -1068,6 +1069,7 @@ JNIEXPORT void JNICALL SDL_JAVA_INTERFACE(onNativeSurfaceChanged)(JNIEnv *env, j
 
         /* GL Context handling is done in the event loop because this function is run from the Java thread */
     }
+#endif
 #endif
 
     SDL_UnlockMutex(Android_ActivityMutex);

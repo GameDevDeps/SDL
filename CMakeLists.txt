@@ -8,11 +8,12 @@ set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 cmake_minimum_required(VERSION 3.0.0...3.5)
 project(SDL2 C CXX)
 
-if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-  set(SDL2_SUBPROJECT OFF)
-else()
-  set(SDL2_SUBPROJECT ON)
-endif()
+#if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+#  set(SDL2_SUBPROJECT OFF)
+#else()
+#  set(SDL2_SUBPROJECT ON)
+#endif()
+set(SDL2_SUBPROJECT ON)
 
 if (HAIKU)
   set(LINKER_LANGUAGE CXX)
@@ -30,11 +31,14 @@ set(PKGCONFIG_DEPENDS)
 #  library will also gain all those build options too. This is meant to
 #  modularize old calls to the global add_definitions and include_directories,
 #  etc. See https://github.com/libsdl-org/SDL/issues/4150
-add_library(sdl-build-options INTERFACE)
+#add_library(sdl-build-options INTERFACE)
+add_library(sdl2.sdl-build-options INTERFACE)
 
 if(WINDOWS_STORE)
-  target_compile_definitions(sdl-build-options INTERFACE "-DSDL_BUILDING_WINRT=1")
-  target_compile_options(sdl-build-options INTERFACE "-ZW")
+#  target_compile_definitions(sdl-build-options INTERFACE "-DSDL_BUILDING_WINRT=1")
+#  target_compile_options(sdl-build-options INTERFACE "-ZW")
+  target_compile_definitions(sdl2.sdl-build-options INTERFACE "-DSDL_BUILDING_WINRT=1")
+  target_compile_options(sdl2.sdl-build-options INTERFACE "-ZW")
 endif()
 
 # CMake 3.0 expands the "if(${A})" in "set(OFF 1);set(A OFF);if(${A})" to "if(1)"
@@ -257,7 +261,8 @@ endif()
 
 # Build in parallel under Visual Studio. Not enabled by default.
 if(MSVC AND NOT USE_CLANG)
-  target_compile_options(sdl-build-options INTERFACE "/MP")
+#  target_compile_options(sdl-build-options INTERFACE "/MP")
+  target_compile_options(sdl2.sdl-build-options INTERFACE "/MP")
 endif()
 
 if(MSVC)
@@ -315,7 +320,8 @@ set(ORIG_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
 
 if(CYGWIN)
   # We build SDL on cygwin without the UNIX emulation layer
-  target_include_directories(sdl-build-options INTERFACE "/usr/include/mingw")
+#  target_include_directories(sdl-build-options INTERFACE "/usr/include/mingw")
+  target_include_directories(sdl2.sdl-build-options INTERFACE "/usr/include/mingw")
   set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -mno-cygwin")
   check_c_source_compiles("int main(int argc, char **argv) { return 0; }"
     HAVE_GCC_NO_CYGWIN)
@@ -328,14 +334,17 @@ if(CYGWIN)
 endif()
 
 # General includes
-target_compile_definitions(sdl-build-options INTERFACE "-DUSING_GENERATED_CONFIG_H")
-target_include_directories(sdl-build-options BEFORE INTERFACE "${SDL2_BINARY_DIR}/include" "${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>")
+#target_compile_definitions(sdl-build-options INTERFACE "-DUSING_GENERATED_CONFIG_H")
+#target_include_directories(sdl-build-options BEFORE INTERFACE "${SDL2_BINARY_DIR}/include" "${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>")
+target_compile_definitions(sdl2.sdl-build-options INTERFACE "-DUSING_GENERATED_CONFIG_H")
+target_include_directories(sdl2.sdl-build-options BEFORE INTERFACE "${SDL2_BINARY_DIR}/include" "${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>")
 # Note: The clang toolset for Visual Studio does not support the '-idirafter' option.
 if(USE_GCC OR (USE_CLANG AND NOT MSVC_CLANG))
   # !!! FIXME: do we _need_ to mess with CMAKE_C_FLAGS here?
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -idirafter \"${SDL2_SOURCE_DIR}/src/video/khronos\"")
 else()
-  target_include_directories(sdl-build-options INTERFACE "${SDL2_SOURCE_DIR}/src/video/khronos")
+#  target_include_directories(sdl-build-options INTERFACE "${SDL2_SOURCE_DIR}/src/video/khronos")
+  target_include_directories(sdl2.sdl-build-options INTERFACE "${SDL2_SOURCE_DIR}/src/video/khronos")
 endif()
 
 # All these ENABLED_BY_DEFAULT vars will default to ON if not specified, so
@@ -362,26 +371,28 @@ endif()
 
 # When defined, respect CMake's BUILD_SHARED_LIBS setting:
 set(SDL_STATIC_ENABLED_BY_DEFAULT ON)
-if (NOT DEFINED SDL_SHARED_ENABLED_BY_DEFAULT)
-  # ...unless decided already (as for EMSCRIPTEN)
+#if (NOT DEFINED SDL_SHARED_ENABLED_BY_DEFAULT)
+#  # ...unless decided already (as for EMSCRIPTEN)
+#
+#  set(SDL_SHARED_ENABLED_BY_DEFAULT OFF)
+#
+#  if (NOT DEFINED BUILD_SHARED_LIBS)
+#    # No preference? Build both, just like the AC/AM configure
+#    set(SDL_SHARED_ENABLED_BY_DEFAULT ON)
+#
+#  elseif (BUILD_SHARED_LIBS)
+#    # In this case, we assume the user wants a shared lib and don't build
+#    # the static one
+#    set(SDL_SHARED_ENABLED_BY_DEFAULT ON)
+#    set(SDL_STATIC_ENABLED_BY_DEFAULT OFF)
+#  endif()
+#endif()
+set(SDL_SHARED_ENABLED_BY_DEFAULT OFF)
 
-  set(SDL_SHARED_ENABLED_BY_DEFAULT OFF)
-
-  if (NOT DEFINED BUILD_SHARED_LIBS)
-    # No preference? Build both, just like the AC/AM configure
-    set(SDL_SHARED_ENABLED_BY_DEFAULT ON)
-
-  elseif (BUILD_SHARED_LIBS)
-    # In this case, we assume the user wants a shared lib and don't build
-    # the static one
-    set(SDL_SHARED_ENABLED_BY_DEFAULT ON)
-    set(SDL_STATIC_ENABLED_BY_DEFAULT OFF)
-  endif()
-endif()
-
-if (NOT DEFINED SDL_TEST_ENABLED_BY_DEFAULT)
-  set(SDL_TEST_ENABLED_BY_DEFAULT ON)
-endif()
+#if (NOT DEFINED SDL_TEST_ENABLED_BY_DEFAULT)
+#  set(SDL_TEST_ENABLED_BY_DEFAULT ON)
+#endif()
+set(SDL_TEST_ENABLED_BY_DEFAULT OFF)
 
 set(LONGESTOPTIONNAME 0)  # set_option and friends will change this.
 
@@ -492,7 +503,8 @@ set_option(SDL_CCACHE              "Use Ccache to speed up build" ON)
 
 option(SDL_WERROR "Enable -Werror" OFF)
 
-option(SDL_SHARED "Build a shared version of the library" ${SDL_SHARED_ENABLED_BY_DEFAULT})
+#option(SDL_SHARED "Build a shared version of the library" ${SDL_SHARED_ENABLED_BY_DEFAULT})
+set(SDL_SHARED OFF)
 option(SDL_STATIC "Build a static version of the library" ${SDL_STATIC_ENABLED_BY_DEFAULT})
 option(SDL_TEST   "Build the SDL2_test library" ${SDL_TEST_ENABLED_BY_DEFAULT})
 
@@ -569,11 +581,13 @@ endif()
 set(HAVE_ASSERTIONS ${SDL_ASSERTIONS})
 
 if(NOT SDL_BACKGROUNDING_SIGNAL STREQUAL "OFF")
-  target_compile_definitions(sdl-build-options INTERFACE "-DSDL_BACKGROUNDING_SIGNAL=${SDL_BACKGROUNDING_SIGNAL}")
+#  target_compile_definitions(sdl-build-options INTERFACE "-DSDL_BACKGROUNDING_SIGNAL=${SDL_BACKGROUNDING_SIGNAL}")
+  target_compile_definitions(sdl2.sdl-build-options INTERFACE "-DSDL_BACKGROUNDING_SIGNAL=${SDL_BACKGROUNDING_SIGNAL}")
 endif()
 
 if(NOT SDL_FOREGROUNDING_SIGNAL STREQUAL "OFF")
-  target_compile_definitions(sdl-build-options INTERFACE "-DSDL_FOREGROUNDING_SIGNAL=${SDL_FOREGROUNDING_SIGNAL}")
+#  target_compile_definitions(sdl-build-options INTERFACE "-DSDL_FOREGROUNDING_SIGNAL=${SDL_FOREGROUNDING_SIGNAL}")
+  target_compile_definitions(sdl2.sdl-build-options INTERFACE "-DSDL_FOREGROUNDING_SIGNAL=${SDL_FOREGROUNDING_SIGNAL}")
 endif()
 
 # Compiler option evaluation
@@ -699,7 +713,8 @@ if(USE_GCC OR USE_CLANG OR USE_INTELCC OR USE_QCC)
     # FIXME: don't use deprecated declarations
     check_c_compiler_flag(-Wno-error=deprecated-declarations HAVE_WNO_ERROR_DEPRECATED_DECLARATIONS)
     if(HAVE_WNO_ERROR_DEPRECATED_DECLARATIONS)
-      target_compile_options(sdl-build-options INTERFACE "-Wno-error=deprecated-declarations")
+#      target_compile_options(sdl-build-options INTERFACE "-Wno-error=deprecated-declarations")
+      target_compile_options(sdl2.sdl-build-options INTERFACE "-Wno-error=deprecated-declarations")
     endif()
     cmake_pop_check_state()
 
@@ -737,9 +752,12 @@ if(USE_GCC OR USE_CLANG OR USE_INTELCC OR USE_QCC)
   endif()
 endif()
 if(MSVC)
-  target_compile_definitions(sdl-build-options INTERFACE "-D_CRT_SECURE_NO_DEPRECATE")
-  target_compile_definitions(sdl-build-options INTERFACE "-D_CRT_NONSTDC_NO_DEPRECATE")
-  target_compile_definitions(sdl-build-options INTERFACE "-D_CRT_SECURE_NO_WARNINGS")
+#  target_compile_definitions(sdl-build-options INTERFACE "-D_CRT_SECURE_NO_DEPRECATE")
+#  target_compile_definitions(sdl-build-options INTERFACE "-D_CRT_NONSTDC_NO_DEPRECATE")
+#  target_compile_definitions(sdl-build-options INTERFACE "-D_CRT_SECURE_NO_WARNINGS")
+  target_compile_definitions(sdl2.sdl-build-options INTERFACE "-D_CRT_SECURE_NO_DEPRECATE")
+  target_compile_definitions(sdl2.sdl-build-options INTERFACE "-D_CRT_NONSTDC_NO_DEPRECATE")
+  target_compile_definitions(sdl2.sdl-build-options INTERFACE "-D_CRT_SECURE_NO_WARNINGS")
 
   # CET support was added in VS 16.7
   if(MSVC_VERSION GREATER 1926 AND CMAKE_GENERATOR_PLATFORM MATCHES "Win32|x64")
@@ -1047,7 +1065,8 @@ if(SDL_LIBC)
     endforeach()
     set(HAVE_ALLOCA 1)
     check_symbol_exists(M_PI math.h HAVE_M_PI)
-    target_compile_definitions(sdl-build-options INTERFACE "-D_USE_MATH_DEFINES") # needed for M_PI
+#    target_compile_definitions(sdl-build-options INTERFACE "-D_USE_MATH_DEFINES") # needed for M_PI
+    target_compile_definitions(sdl2.sdl-build-options INTERFACE "-D_USE_MATH_DEFINES") # needed for M_PI
     set(STDC_HEADERS 1)
   else()
     set(HAVE_LIBC TRUE)
@@ -1366,7 +1385,8 @@ if(ANDROID)
     # find_library(ANDROID_DL_LIBRARY dl)
     # FIXME failing dlopen https://github.com/android-ndk/ndk/issues/929
     list(APPEND EXTRA_LIBS dl log android)
-    target_compile_definitions(sdl-build-options INTERFACE "-DGL_GLEXT_PROTOTYPES")
+#    target_compile_definitions(sdl-build-options INTERFACE "-DGL_GLEXT_PROTOTYPES")
+    target_compile_definitions(sdl2.sdl-build-options INTERFACE "-DGL_GLEXT_PROTOTYPES")
 
     #enable gles
     if(SDL_OPENGLES)
@@ -1402,7 +1422,8 @@ if(ANDROID)
 elseif(EMSCRIPTEN)
   # Hide noisy warnings that intend to aid mostly during initial stages of porting a new
   # project. Uncomment at will for verbose cross-compiling -I/../ path info.
-  target_compile_options(sdl-build-options INTERFACE "-Wno-warn-absolute-paths")
+#  target_compile_options(sdl-build-options INTERFACE "-Wno-warn-absolute-paths")
+  target_compile_options(sdl2.sdl-build-options INTERFACE "-Wno-warn-absolute-paths")
 
   if(SDL_MISC)
     file(GLOB EMSRIPTEN_MISC_SOURCES ${SDL2_SOURCE_DIR}/src/misc/emscripten/*.c)
@@ -1605,7 +1626,8 @@ elseif(UNIX AND NOT APPLE AND NOT RISCOS AND NOT HAIKU)
         pkg_search_module(DBUS dbus-1 dbus)
         if(DBUS_FOUND)
           set(HAVE_DBUS_DBUS_H TRUE)
-          target_include_directories(sdl-build-options INTERFACE "${DBUS_INCLUDE_DIRS}")
+#          target_include_directories(sdl-build-options INTERFACE "${DBUS_INCLUDE_DIRS}")
+          target_include_directories(sdl2.sdl-build-options INTERFACE "${DBUS_INCLUDE_DIRS}")
           # Fcitx need only dbus.
           set(HAVE_FCITX TRUE)
           set(HAVE_DBUS TRUE)
@@ -1617,7 +1639,8 @@ elseif(UNIX AND NOT APPLE AND NOT RISCOS AND NOT HAIKU)
         find_path(HAVE_SYS_INOTIFY_H NAMES sys/inotify.h)
         if(IBUS_FOUND AND HAVE_SYS_INOTIFY_H)
           set(HAVE_IBUS_IBUS_H TRUE)
-          target_include_directories(sdl-build-options INTERFACE "${IBUS_INCLUDE_DIRS}")
+#          target_include_directories(sdl-build-options INTERFACE "${IBUS_INCLUDE_DIRS}")
+          target_include_directories(sdl2.sdl-build-options INTERFACE "${IBUS_INCLUDE_DIRS}")
           set(HAVE_IBUS TRUE)
         endif()
       endif()
@@ -1630,7 +1653,8 @@ elseif(UNIX AND NOT APPLE AND NOT RISCOS AND NOT HAIKU)
         pkg_search_module(INOTIFY libinotify)
         if(INOTIFY_FOUND)
           set(HAVE_INOTIFY 1)
-          target_include_directories(sdl-build-options INTERFACE "${INOTIFY_INCLUDE_DIRS}")
+#          target_include_directories(sdl-build-options INTERFACE "${INOTIFY_INCLUDE_DIRS}")
+          target_include_directories(sdl2.sdl-build-options INTERFACE "${INOTIFY_INCLUDE_DIRS}")
           list(APPEND EXTRA_LIBS ${INOTIFY_LIBRARIES})
         endif()
       endif()
@@ -1842,8 +1866,10 @@ elseif(WINDOWS)
       set(HAVE_DIRECTX TRUE)
       if(NOT MINGW AND NOT USE_WINSDK_DIRECTX)
       # TODO: change $ENV{DXSDL_DIR} to get the path from the include checks
-        target_link_directories(sdl-build-options INTERFACE "$$ENV{DXSDK_DIR}\\lib\\${PROCESSOR_ARCH}")
-        target_include_directories(sdl-build-options INTERFACE "$ENV{DXSDK_DIR}\\Include")
+#        target_link_directories(sdl-build-options INTERFACE "$$ENV{DXSDK_DIR}\\lib\\${PROCESSOR_ARCH}")
+#        target_include_directories(sdl-build-options INTERFACE "$ENV{DXSDK_DIR}\\Include")
+        target_link_directories(sdl2.sdl-build-options INTERFACE "$$ENV{DXSDK_DIR}\\lib\\${PROCESSOR_ARCH}")
+        target_include_directories(sdl2.sdl-build-options INTERFACE "$ENV{DXSDK_DIR}\\Include")
       endif()
     endif()
     set(CMAKE_REQUIRED_FLAGS ${ORIG_CMAKE_REQUIRED_FLAGS})
@@ -2578,7 +2604,8 @@ elseif(VITA)
     if(VIDEO_VITA_PVR)
       check_include_file(gpu_es4/psp2_pvr_hint.h HAVE_PVR_H)
       if(HAVE_PVR_H)
-        target_compile_definitions(sdl-build-options INTERFACE "-D__psp2__")
+#        target_compile_definitions(sdl-build-options INTERFACE "-D__psp2__")
+        target_compile_definitions(sdl2.sdl-build-options INTERFACE "-D__psp2__")
         set(SDL_VIDEO_OPENGL_EGL 1)
         set(HAVE_OPENGLES TRUE)
         set(SDL_VIDEO_OPENGL_ES 1)
@@ -2648,7 +2675,8 @@ elseif(VITA)
 #  set_property(SOURCE ${SDL2_SOURCE_DIR}/src/video/arm/pixman-arm-simd-asm.S PROPERTY LANGUAGE C)
 #  set_property(SOURCE ${SDL2_SOURCE_DIR}/src/video/arm/pixman-arm-neon-asm.S PROPERTY LANGUAGE C)
 
-  target_compile_definitions(sdl-build-options INTERFACE "-D__VITA__")
+#  target_compile_definitions(sdl-build-options INTERFACE "-D__VITA__")
+  target_compile_definitions(sdl2.sdl-build-options INTERFACE "-D__VITA__")
 
 #  CheckPTHREAD()
 
@@ -3285,8 +3313,10 @@ if(SDL_TESTS)
 endif()
 
 # Create target that collects all all generated include files.
-add_custom_target(sdl_headers_copy
-    DEPENDS ${SDL_GENERATED_HEADERS})
+#add_custom_target(sdl_headers_copy
+#    DEPENDS ${SDL_GENERATED_HEADERS})
+add_custom_target(sdl2.sdl_headers_copy
+     DEPENDS ${SDL_GENERATED_HEADERS})
 
 ##### Info output #####
 message(STATUS "")
@@ -3359,35 +3389,53 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS} ${EXTRA_CFLAGS_BUILD}")
 
 if(NOT WINDOWS_STORE AND NOT SDL2_DISABLE_SDL2MAIN)
   # Build SDLmain
-  add_library(SDL2main STATIC ${SDLMAIN_SOURCES})
-  add_dependencies(SDL2main sdl_headers_copy)
+#  add_library(SDL2main STATIC ${SDLMAIN_SOURCES})
+#  add_dependencies(SDL2main sdl_headers_copy)
+  add_library(sdl2.SDL2main STATIC ${SDLMAIN_SOURCES})
+  add_dependencies(sdl2.SDL2main sdl2.sdl_headers_copy)
   # alias target for in-tree builds
-  add_library(SDL2::SDL2main ALIAS SDL2main)
-  target_include_directories(SDL2main BEFORE
+#  add_library(SDL2::SDL2main ALIAS SDL2main)
+#  target_include_directories(SDL2main BEFORE
+#    PRIVATE "${SDL2_BINARY_DIR}/include"
+#    PRIVATE "${SDL2_BINARY_DIR}/include/SDL2"
+#    PRIVATE "${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2"
+#  )
+#  target_include_directories(SDL2main PUBLIC "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include>" $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SDL2>)
+  add_library(sdl2::SDL2main ALIAS sdl2.SDL2main)
+  target_include_directories(sdl2.SDL2main BEFORE
     PRIVATE "${SDL2_BINARY_DIR}/include"
     PRIVATE "${SDL2_BINARY_DIR}/include/SDL2"
     PRIVATE "${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2"
   )
-  target_include_directories(SDL2main PUBLIC "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include>" $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SDL2>)
+  target_include_directories(sdl2.SDL2main PUBLIC "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include>" $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SDL2>)
   if (WIN32)
-    target_link_libraries(SDL2main PRIVATE shell32)
+#    target_link_libraries(SDL2main PRIVATE shell32)
+    target_link_libraries(sdl2.SDL2main PRIVATE shell32)
   endif()
   if(MINGW OR CYGWIN)
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-      target_link_libraries(SDL2main PUBLIC "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:-Wl,--undefined=_WinMain@16>")
+#      target_link_libraries(SDL2main PUBLIC "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:-Wl,--undefined=_WinMain@16>")
+      target_link_libraries(sdl2.SDL2main PUBLIC "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:-Wl,--undefined=_WinMain@16>")
     else()
-      target_link_libraries(SDL2main PUBLIC "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:-Wl,--undefined=WinMain>")
+#      target_link_libraries(SDL2main PUBLIC "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:-Wl,--undefined=WinMain>")
+      target_link_libraries(sdl2.SDL2main PUBLIC "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:-Wl,--undefined=WinMain>")
     endif()
   endif()
   if (NOT ANDROID)
-    set_target_properties(SDL2main PROPERTIES DEBUG_POSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
+#    set_target_properties(SDL2main PROPERTIES DEBUG_POSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
+    set_target_properties(sdl2.SDL2main PROPERTIES DEBUG_POSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
   endif()
-  set_property(TARGET SDL2main APPEND PROPERTY COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
-  set_property(TARGET SDL2main PROPERTY INTERFACE_SDL_VERSION "SDL2")
+#  set_property(TARGET SDL2main APPEND PROPERTY COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
+#  set_property(TARGET SDL2main PROPERTY INTERFACE_SDL_VERSION "SDL2")
+  set_property(TARGET sdl2.SDL2main APPEND PROPERTY COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
+  set_property(TARGET sdl2.SDL2main PROPERTY INTERFACE_SDL_VERSION "SDL2")
+  set_property(TARGET sdl2.SDL2main PROPERTY EXPORT_NAME "SDL2main")
+  set_property(TARGET sdl2.SDL2main PROPERTY OUTPUT_NAME "SDL2main")
 endif()
 
 if(ANDROID)
-  target_include_directories(sdl-build-options INTERFACE "${ANDROID_NDK}/sources/android/cpufeatures")
+#  target_include_directories(sdl-build-options INTERFACE "${ANDROID_NDK}/sources/android/cpufeatures")
+  target_include_directories(sdl2.sdl-build-options INTERFACE "${ANDROID_NDK}/sources/android/cpufeatures")
 endif()
 
 if(APPLE)
@@ -3397,11 +3445,13 @@ if(APPLE)
   if(NOT COMPILER_SUPPORTS_FOBJC_ARC)
     message(FATAL_ERROR "Compiler does not support -fobjc-arc: this is required on Apple platforms")
   endif()
-  target_compile_options(sdl-build-options INTERFACE "-fobjc-arc")
+#  target_compile_options(sdl-build-options INTERFACE "-fobjc-arc")
+  target_compile_options(sdl2.sdl-build-options INTERFACE "-fobjc-arc")
 endif()
 
 if(PS2)
-  target_compile_options(sdl-build-options INTERFACE "-Wno-error=declaration-after-statement")
+#  target_compile_options(sdl-build-options INTERFACE "-Wno-error=declaration-after-statement")
+  target_compile_options(sdl2.sdl-build-options INTERFACE "-Wno-error=declaration-after-statement")
 endif()
 
 if(APPLE)
@@ -3413,93 +3463,108 @@ if(APPLE)
   endforeach()
 endif()
 
-if(SDL_SHARED)
-  add_library(SDL2 SHARED ${SOURCE_FILES} ${VERSION_SOURCES})
-  add_dependencies(SDL2 sdl_headers_copy)
-  # alias target for in-tree builds
-  add_library(SDL2::SDL2 ALIAS SDL2)
-  set_target_properties(SDL2 PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
-  set_target_properties(SDL2 PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS FALSE)
-  if(NOT SDL_LIBC)
-    if(SDL_CPU_X86)
-      # FIXME: should be added for all architectures (missing symbols for ARM)
-      target_link_libraries(SDL2 PRIVATE "-nodefaultlib:MSVCRT")
-    endif()
-    if(HAS_Q_NO_USE_LIBIRC)
-      target_compile_options(SDL2 PRIVATE /Q_no-use-libirc)
-    endif()
-  endif()
-  if(APPLE)
-    # FIXME: Remove SOVERSION in SDL3
-    set_target_properties(SDL2 PROPERTIES
-      MACOSX_RPATH 1
-      SOVERSION 0
-      OUTPUT_NAME "SDL2-${LT_RELEASE}")
-  elseif(UNIX AND NOT ANDROID)
-    set_target_properties(SDL2 PROPERTIES
-      VERSION ${LT_VERSION}
-      SOVERSION ${LT_MAJOR}
-      OUTPUT_NAME "SDL2-${LT_RELEASE}")
-  else()
-    if(WINDOWS OR CYGWIN)
-      set_target_properties(SDL2 PROPERTIES
-        DEFINE_SYMBOL DLL_EXPORT)
-    elseif(OS2)
-      set_target_properties(SDL2 PROPERTIES
-        DEFINE_SYMBOL BUILD_SDL)
-    endif()
-    set_target_properties(SDL2 PROPERTIES
-      VERSION ${SDL_VERSION}
-      SOVERSION ${LT_REVISION}
-      OUTPUT_NAME "SDL2")
-  endif()
-  # Note: The clang toolset for Visual Studio does not support /NODEFAULTLIB.
-  if(MSVC AND NOT SDL_LIBC AND NOT MSVC_CLANG AND NOT SDL_CPU_ARM32)
-    # Don't try to link with the default set of libraries.
-    if(NOT WINDOWS_STORE)
-      set_property(TARGET SDL2 APPEND_STRING PROPERTY LINK_FLAGS " /NODEFAULTLIB")
-    endif()
-    set_property(TARGET SDL2 APPEND_STRING PROPERTY STATIC_LIBRARY_FLAGS " /NODEFAULTLIB")
-  endif()
-  # FIXME: if CMAKE_VERSION >= 3.13, use target_link_options for EXTRA_LDFLAGS
-  target_link_libraries(SDL2 PRIVATE ${EXTRA_LIBS} ${EXTRA_LDFLAGS} ${EXTRA_LDFLAGS_BUILD} ${CMAKE_DEPENDS})
-  target_include_directories(SDL2 PUBLIC
-      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include>"
-      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include/SDL2>"
-      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2>"
-      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
-      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SDL2>"
-  )
-  # This picks up all the compiler options and such we've accumulated up to here.
-  target_link_libraries(SDL2 PRIVATE $<BUILD_INTERFACE:sdl-build-options>)
-  if(MINGW OR CYGWIN)
-    if(NOT CMAKE_VERSION VERSION_LESS "3.13")
-      target_link_options(SDL2 PRIVATE -static-libgcc)
-    endif()
-  endif()
-  if(NOT ANDROID)
-    set_target_properties(SDL2 PROPERTIES DEBUG_POSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
-  endif()
-  # Use `Compatible Interface Properties` to allow consumers to enforce a shared/static library
-  set_property(TARGET SDL2 APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL SDL2_SHARED)
-  set_property(TARGET SDL2 PROPERTY INTERFACE_SDL2_SHARED TRUE)
-  set_property(TARGET SDL2 APPEND PROPERTY COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
-  set_property(TARGET SDL2 PROPERTY INTERFACE_SDL_VERSION "SDL2")
-endif()
+#if(SDL_SHARED)
+#  add_library(SDL2 SHARED ${SOURCE_FILES} ${VERSION_SOURCES})
+#  add_dependencies(SDL2 sdl_headers_copy)
+#  # alias target for in-tree builds
+#  add_library(SDL2::SDL2 ALIAS SDL2)
+#  set_target_properties(SDL2 PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+#  set_target_properties(SDL2 PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS FALSE)
+#  if(NOT SDL_LIBC)
+#    if(SDL_CPU_X86)
+#      # FIXME: should be added for all architectures (missing symbols for ARM)
+#      target_link_libraries(SDL2 PRIVATE "-nodefaultlib:MSVCRT")
+#    endif()
+#    if(HAS_Q_NO_USE_LIBIRC)
+#      target_compile_options(SDL2 PRIVATE /Q_no-use-libirc)
+#    endif()
+#  endif()
+#  if(APPLE)
+#    # FIXME: Remove SOVERSION in SDL3
+#    set_target_properties(SDL2 PROPERTIES
+#      MACOSX_RPATH 1
+#      SOVERSION 0
+#      OUTPUT_NAME "SDL2-${LT_RELEASE}")
+#  elseif(UNIX AND NOT ANDROID)
+#    set_target_properties(SDL2 PROPERTIES
+#      VERSION ${LT_VERSION}
+#      SOVERSION ${LT_MAJOR}
+#      OUTPUT_NAME "SDL2-${LT_RELEASE}")
+#  else()
+#    if(WINDOWS OR CYGWIN)
+#      set_target_properties(SDL2 PROPERTIES
+#        DEFINE_SYMBOL DLL_EXPORT)
+#    elseif(OS2)
+#      set_target_properties(SDL2 PROPERTIES
+#        DEFINE_SYMBOL BUILD_SDL)
+#    endif()
+#    set_target_properties(SDL2 PROPERTIES
+#      VERSION ${SDL_VERSION}
+#      SOVERSION ${LT_REVISION}
+#      OUTPUT_NAME "SDL2")
+#  endif()
+#  # Note: The clang toolset for Visual Studio does not support /NODEFAULTLIB.
+#  if(MSVC AND NOT SDL_LIBC AND NOT MSVC_CLANG AND NOT SDL_CPU_ARM32)
+#    # Don't try to link with the default set of libraries.
+#    if(NOT WINDOWS_STORE)
+#      set_property(TARGET SDL2 APPEND_STRING PROPERTY LINK_FLAGS " /NODEFAULTLIB")
+#    endif()
+#    set_property(TARGET SDL2 APPEND_STRING PROPERTY STATIC_LIBRARY_FLAGS " /NODEFAULTLIB")
+#  endif()
+#  # FIXME: if CMAKE_VERSION >= 3.13, use target_link_options for EXTRA_LDFLAGS
+#  target_link_libraries(SDL2 PRIVATE ${EXTRA_LIBS} ${EXTRA_LDFLAGS} ${EXTRA_LDFLAGS_BUILD} ${CMAKE_DEPENDS})
+#  target_include_directories(SDL2 PUBLIC
+#      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include>"
+#      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include/SDL2>"
+#      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2>"
+#      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+#      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SDL2>"
+#  )
+#  # This picks up all the compiler options and such we've accumulated up to here.
+#  target_link_libraries(SDL2 PRIVATE $<BUILD_INTERFACE:sdl-build-options>)
+#  if(MINGW OR CYGWIN)
+#    if(NOT CMAKE_VERSION VERSION_LESS "3.13")
+#      target_link_options(SDL2 PRIVATE -static-libgcc)
+#    endif()
+#  endif()
+#  if(NOT ANDROID)
+#    set_target_properties(SDL2 PROPERTIES DEBUG_POSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
+#  endif()
+#  # Use `Compatible Interface Properties` to allow consumers to enforce a shared/static library
+#  set_property(TARGET SDL2 APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL SDL2_SHARED)
+#  set_property(TARGET SDL2 PROPERTY INTERFACE_SDL2_SHARED TRUE)
+#  set_property(TARGET SDL2 APPEND PROPERTY COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
+#  set_property(TARGET SDL2 PROPERTY INTERFACE_SDL_VERSION "SDL2")
+#endif()
 
 if(SDL_STATIC)
-  add_library(SDL2-static STATIC ${SOURCE_FILES})
-  add_dependencies(SDL2-static sdl_headers_copy)
+#  add_library(SDL2-static STATIC ${SOURCE_FILES})
+#  add_dependencies(SDL2-static sdl_headers_copy)
+  add_library(sdl2.SDL2-static STATIC ${SOURCE_FILES})
+  add_dependencies(sdl2.SDL2-static sdl2.sdl_headers_copy)
   # alias target for in-tree builds
-  add_library(SDL2::SDL2-static ALIAS SDL2-static)
-  set_target_properties(SDL2-static PROPERTIES
+#  add_library(SDL2::SDL2-static ALIAS SDL2-static)
+#  set_target_properties(SDL2-static PROPERTIES
+#    OUTPUT_NAME "${sdl_static_libname}"
+#    POSITION_INDEPENDENT_CODE "${SDL_STATIC_PIC}")
+#  target_compile_definitions(SDL2-static PRIVATE SDL_STATIC_LIB)
+  add_library(sdl2::SDL2-static ALIAS sdl2.SDL2-static)
+  set_target_properties(sdl2.SDL2-static PROPERTIES
     OUTPUT_NAME "${sdl_static_libname}"
     POSITION_INDEPENDENT_CODE "${SDL_STATIC_PIC}")
-  target_compile_definitions(SDL2-static PRIVATE SDL_STATIC_LIB)
+  target_compile_definitions(sdl2.SDL2-static PRIVATE SDL_STATIC_LIB)
   # TODO: Win32 platforms keep the same suffix .lib for import and static
   # libraries - do we need to consider this?
-  target_link_libraries(SDL2-static PRIVATE ${EXTRA_LIBS} ${EXTRA_LDFLAGS} ${CMAKE_DEPENDS})
-  target_include_directories(SDL2-static PUBLIC
+#  target_link_libraries(SDL2-static PRIVATE ${EXTRA_LIBS} ${EXTRA_LDFLAGS} ${CMAKE_DEPENDS})
+#  target_include_directories(SDL2-static PUBLIC
+#      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include>"
+#      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include/SDL2>"
+#      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2>"
+#      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+#      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SDL2>"
+#  )
+  target_link_libraries(sdl2.SDL2-static PRIVATE ${EXTRA_LIBS} ${EXTRA_LDFLAGS} ${CMAKE_DEPENDS})
+  target_include_directories(sdl2.SDL2-static PUBLIC
       "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include>"
       "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include/SDL2>"
       "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2>"
@@ -3507,15 +3572,24 @@ if(SDL_STATIC)
       "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SDL2>"
   )
   # This picks up all the compiler options and such we've accumulated up to here.
-  target_link_libraries(SDL2-static PRIVATE $<BUILD_INTERFACE:sdl-build-options>)
+#  target_link_libraries(SDL2-static PRIVATE $<BUILD_INTERFACE:sdl-build-options>)
+#  if(NOT ANDROID)
+#    set_target_properties(SDL2-static PROPERTIES DEBUG_POSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
+#  endif()
+  target_link_libraries(sdl2.SDL2-static PRIVATE $<BUILD_INTERFACE:sdl2.sdl-build-options>)
   if(NOT ANDROID)
-    set_target_properties(SDL2-static PROPERTIES DEBUG_POSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
+    set_target_properties(sdl2.SDL2-static PROPERTIES DEBUG_POSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
   endif()
   # Use `Compatible Interface Properties` to allow consumers to enforce a shared/static library
-  set_property(TARGET SDL2-static APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL SDL2_SHARED)
-  set_property(TARGET SDL2-static PROPERTY INTERFACE_SDL2_SHARED FALSE)
-  set_property(TARGET SDL2-static APPEND PROPERTY  COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
-  set_property(TARGET SDL2-static PROPERTY INTERFACE_SDL_VERSION "SDL2")
+#  set_property(TARGET SDL2-static APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL SDL2_SHARED)
+#  set_property(TARGET SDL2-static PROPERTY INTERFACE_SDL2_SHARED FALSE)
+#  set_property(TARGET SDL2-static APPEND PROPERTY  COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
+#  set_property(TARGET SDL2-static PROPERTY INTERFACE_SDL_VERSION "SDL2")
+  set_property(TARGET sdl2.SDL2-static APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL SDL2_SHARED)
+  set_property(TARGET sdl2.SDL2-static PROPERTY INTERFACE_SDL2_SHARED FALSE)
+  set_property(TARGET sdl2.SDL2-static APPEND PROPERTY  COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
+  set_property(TARGET sdl2.SDL2-static PROPERTY INTERFACE_SDL_VERSION "SDL2")
+  set_property(TARGET sdl2.SDL2-static PROPERTY EXPORT_NAME "SDL2-static")
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSDL_BUILD_MAJOR_VERSION=${SDL_MAJOR_VERSION}")
@@ -3526,195 +3600,209 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSDL_BUILD_MICRO_VERSION=${SDL_MICRO_VERSIO
 
 if(SDL_TEST)
   file(GLOB TEST_SOURCES ${SDL2_SOURCE_DIR}/src/test/*.c)
-  add_library(SDL2_test STATIC ${TEST_SOURCES})
-  add_dependencies(SDL2_test sdl_headers_copy)
-  add_library(SDL2::SDL2test ALIAS SDL2_test)
-  set_target_properties(SDL2_test PROPERTIES
-      EXPORT_NAME SDL2test)
-  target_include_directories(SDL2_test PUBLIC
+#  add_library(SDL2_test STATIC ${TEST_SOURCES})
+#  add_dependencies(SDL2_test sdl_headers_copy)
+#  add_library(SDL2::SDL2test ALIAS SDL2_test)
+#  set_target_properties(SDL2_test PROPERTIES
+#      EXPORT_NAME SDL2test)
+#  target_include_directories(SDL2_test PUBLIC
+#      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include>"
+#      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include/SDL2>"
+#      "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2>"
+#      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+#      "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SDL2>")
+#  target_link_libraries(SDL2_test PRIVATE ${EXTRA_TEST_LIBS})
+#  target_include_directories(SDL2_test PRIVATE ${EXTRA_TEST_INCLUDES})
+#  set_property(TARGET SDL2_test APPEND PROPERTY COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
+#  set_property(TARGET SDL2_test PROPERTY INTERFACE_SDL_VERSION "SDL2")
+  add_library(sdl2.SDL2_test STATIC ${TEST_SOURCES})
+  add_dependencies(sdl2.SDL2_test sdl2.sdl_headers_copy)
+  add_library(sdl2::SDL2test ALIAS sdl2.SDL2_test)
+  set_target_properties(sdl2.SDL2_test PROPERTIES EXPORT_NAME SDL2test)
+  target_include_directories(sdl2.SDL2_test PUBLIC
       "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include>"
       "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include/SDL2>"
       "$<BUILD_INTERFACE:${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2>"
       "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
       "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SDL2>")
-  target_link_libraries(SDL2_test PRIVATE ${EXTRA_TEST_LIBS})
-  target_include_directories(SDL2_test PRIVATE ${EXTRA_TEST_INCLUDES})
-  set_property(TARGET SDL2_test APPEND PROPERTY COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
-  set_property(TARGET SDL2_test PROPERTY INTERFACE_SDL_VERSION "SDL2")
+  target_link_libraries(sdl2.SDL2_test PRIVATE ${EXTRA_TEST_LIBS})
+  target_include_directories(sdl2.SDL2_test PRIVATE ${EXTRA_TEST_INCLUDES})
+  set_property(TARGET sdl2.SDL2_test APPEND PROPERTY COMPATIBLE_INTERFACE_STRING "SDL_VERSION")
+  set_property(TARGET sdl2.SDL2_test PROPERTY INTERFACE_SDL_VERSION "SDL2")
 endif()
 
 ##### Installation targets #####
-if(NOT SDL2_DISABLE_INSTALL)
-  if(SDL_SHARED)
-    install(TARGETS SDL2 EXPORT SDL2Targets
-      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    if(MSVC)
-      SDL_install_pdb(SDL2 "${CMAKE_INSTALL_BINDIR}")
-    endif()
-  endif()
-
-  if(NOT WINDOWS_STORE AND NOT SDL2_DISABLE_SDL2MAIN)
-    install(TARGETS SDL2main EXPORT SDL2mainTargets
-      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    if(MSVC)
-      SDL_install_pdb(SDL2main "${CMAKE_INSTALL_LIBDIR}")
-    endif()
-  endif()
-
-  if(SDL_STATIC)
-    install(TARGETS SDL2-static EXPORT SDL2staticTargets
-      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    if(MSVC)
-      SDL_install_pdb(SDL2-static "${CMAKE_INSTALL_LIBDIR}")
-    endif()
-  endif()
-
-  if(SDL_TEST)
-    install(TARGETS SDL2_test EXPORT SDL2testTargets
-      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    if(MSVC)
-      SDL_install_pdb(SDL2_test "${CMAKE_INSTALL_LIBDIR}")
-    endif()
-  endif()
-
-  ##### Export files #####
-  if (WINDOWS AND NOT MINGW)
-    set(SDL_INSTALL_CMAKEDIR_DEFAULT "cmake")
-    set(LICENSES_PREFIX "licenses/SDL2")
-  else ()
-    set(SDL_INSTALL_CMAKEDIR_DEFAULT "${CMAKE_INSTALL_LIBDIR}/cmake/SDL2")
-    set(LICENSES_PREFIX "${CMAKE_INSTALL_DATAROOTDIR}/licenses/${PROJECT_NAME}")
-  endif ()
-  set(SDL_INSTALL_CMAKEDIR "${SDL_INSTALL_CMAKEDIR_DEFAULT}" CACHE STRING "Location where to install SDL2Config.cmake")
-
-  include(CMakePackageConfigHelpers)
-  configure_package_config_file(SDL2Config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/SDL2Config.cmake"
-    PATH_VARS CMAKE_INSTALL_PREFIX CMAKE_INSTALL_FULL_BINDIR CMAKE_INSTALL_FULL_INCLUDEDIR CMAKE_INSTALL_FULL_LIBDIR
-    INSTALL_DESTINATION "${SDL_INSTALL_CMAKEDIR}"
-  )
-  write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/SDL2ConfigVersion.cmake"
-    VERSION ${SDL_VERSION}
-    COMPATIBILITY AnyNewerVersion
-  )
-
-  if(SDL_SHARED)
-    install(EXPORT SDL2Targets
-      FILE SDL2Targets.cmake
-      NAMESPACE SDL2::
-      DESTINATION "${SDL_INSTALL_CMAKEDIR}"
-    )
-    if(ANDROID AND NOT CMAKE_VERSION VERSION_LESS 3.7)
-      install(EXPORT_ANDROID_MK SDL2Targets
-        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ndk-modules/SDL2")
-    endif()
-  endif()
-
-  if(NOT WINDOWS_STORE AND NOT SDL2_DISABLE_SDL2MAIN)
-    install(EXPORT SDL2mainTargets
-      FILE SDL2mainTargets.cmake
-      NAMESPACE SDL2::
-      DESTINATION "${SDL_INSTALL_CMAKEDIR}"
-    )
-    if(ANDROID AND NOT CMAKE_VERSION VERSION_LESS 3.7)
-      install(EXPORT_ANDROID_MK SDL2mainTargets
-        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ndk-modules/SDL2main")
-    endif()
-  endif()
-
-  if(SDL_STATIC)
-    install(EXPORT SDL2staticTargets
-      FILE SDL2staticTargets.cmake
-      NAMESPACE SDL2::
-      DESTINATION "${SDL_INSTALL_CMAKEDIR}"
-    )
-    if(ANDROID AND NOT CMAKE_VERSION VERSION_LESS 3.7)
-      install(EXPORT_ANDROID_MK SDL2staticTargets
-        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ndk-modules/SDL2-static")
-    endif()
-  endif()
-
-  if(SDL_TEST)
-    install(EXPORT SDL2testTargets
-      FILE SDL2testTargets.cmake
-      NAMESPACE SDL2::
-      DESTINATION "${SDL_INSTALL_CMAKEDIR}"
-    )
-    if(ANDROID AND NOT CMAKE_VERSION VERSION_LESS 3.7)
-      install(EXPORT_ANDROID_MK SDL2testTargets
-        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ndk-modules/SDL2test")
-    endif()
-  endif()
-
-  install(
-    FILES
-      ${CMAKE_CURRENT_BINARY_DIR}/SDL2Config.cmake
-      ${CMAKE_CURRENT_BINARY_DIR}/SDL2ConfigVersion.cmake
-      ${SDL2_SOURCE_DIR}/cmake/sdlfind.cmake
-    DESTINATION "${SDL_INSTALL_CMAKEDIR}"
-    COMPONENT Devel
-  )
-
-  install(
-    FILES
-      ${SDL2_INCLUDE_FILES}
-      "${SDL2_BINARY_DIR}/include/SDL2/SDL_revision.h"
-      "${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2/SDL_config.h"
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SDL2)
-
-  string(TOUPPER "${CMAKE_BUILD_TYPE}" UPPER_BUILD_TYPE)
-  if (UPPER_BUILD_TYPE MATCHES DEBUG)
-    set(SOPOSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
-  else()
-    set(SOPOSTFIX "")
-  endif()
-
-  install(FILES "LICENSE.txt" DESTINATION "${LICENSES_PREFIX}")
-  if(FREEBSD)
-    # FreeBSD uses ${PREFIX}/libdata/pkgconfig
-    install(FILES ${SDL2_BINARY_DIR}/sdl2.pc DESTINATION "libdata/pkgconfig")
-  else()
-    install(FILES ${SDL2_BINARY_DIR}/sdl2.pc
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-  endif()
-  if(NOT (WINDOWS OR CYGWIN) OR MINGW)
-    if(SDL_SHARED)
-      set(SOEXT ${CMAKE_SHARED_LIBRARY_SUFFIX}) # ".so", ".dylib", etc.
-      get_target_property(SONAME SDL2 OUTPUT_NAME)
-      if(NOT ANDROID AND NOT MINGW AND NOT OS2)
-          install(CODE "
-            execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-              \"lib${SONAME}${SOPOSTFIX}${SOEXT}\" \"libSDL2${SOPOSTFIX}${SOEXT}\"
-              WORKING_DIRECTORY \"${SDL2_BINARY_DIR}\")")
-          install(FILES ${SDL2_BINARY_DIR}/libSDL2${SOPOSTFIX}${SOEXT} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-      endif()
-    endif()
-    install(PROGRAMS ${SDL2_BINARY_DIR}/sdl2-config DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    # TODO: what about the .spec file? Is it only needed for RPM creation?
-    install(FILES "${SDL2_SOURCE_DIR}/sdl2.m4" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/aclocal")
-  endif()
-endif()
+#if(NOT SDL2_DISABLE_INSTALL)
+#  if(SDL_SHARED)
+#    install(TARGETS SDL2 EXPORT SDL2Targets
+#      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+#      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+#      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+#    if(MSVC)
+#      SDL_install_pdb(SDL2 "${CMAKE_INSTALL_BINDIR}")
+#    endif()
+#  endif()
+#
+#  if(NOT WINDOWS_STORE AND NOT SDL2_DISABLE_SDL2MAIN)
+#    install(TARGETS SDL2main EXPORT SDL2mainTargets
+#      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+#      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+#      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+#    if(MSVC)
+#      SDL_install_pdb(SDL2main "${CMAKE_INSTALL_LIBDIR}")
+#    endif()
+#  endif()
+#
+#  if(SDL_STATIC)
+#    install(TARGETS SDL2-static EXPORT SDL2staticTargets
+#      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+#      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+#      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+#    if(MSVC)
+#      SDL_install_pdb(SDL2-static "${CMAKE_INSTALL_LIBDIR}")
+#    endif()
+#  endif()
+#
+#  if(SDL_TEST)
+#    install(TARGETS SDL2_test EXPORT SDL2testTargets
+#      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+#      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+#      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+#    if(MSVC)
+#      SDL_install_pdb(SDL2_test "${CMAKE_INSTALL_LIBDIR}")
+#    endif()
+#  endif()
+#
+#  ##### Export files #####
+#  if (WINDOWS AND NOT MINGW)
+#    set(SDL_INSTALL_CMAKEDIR_DEFAULT "cmake")
+#    set(LICENSES_PREFIX "licenses/SDL2")
+#  else ()
+#    set(SDL_INSTALL_CMAKEDIR_DEFAULT "${CMAKE_INSTALL_LIBDIR}/cmake/SDL2")
+#    set(LICENSES_PREFIX "${CMAKE_INSTALL_DATAROOTDIR}/licenses/${PROJECT_NAME}")
+#  endif ()
+#  set(SDL_INSTALL_CMAKEDIR "${SDL_INSTALL_CMAKEDIR_DEFAULT}" CACHE STRING "Location where to install SDL2Config.cmake")
+#
+#  include(CMakePackageConfigHelpers)
+#  configure_package_config_file(SDL2Config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/SDL2Config.cmake"
+#    PATH_VARS CMAKE_INSTALL_PREFIX CMAKE_INSTALL_FULL_BINDIR CMAKE_INSTALL_FULL_INCLUDEDIR CMAKE_INSTALL_FULL_LIBDIR
+#    INSTALL_DESTINATION "${SDL_INSTALL_CMAKEDIR}"
+#  )
+#  write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/SDL2ConfigVersion.cmake"
+#    VERSION ${SDL_VERSION}
+#    COMPATIBILITY AnyNewerVersion
+#  )
+#
+#  if(SDL_SHARED)
+#    install(EXPORT SDL2Targets
+#      FILE SDL2Targets.cmake
+#      NAMESPACE SDL2::
+#      DESTINATION "${SDL_INSTALL_CMAKEDIR}"
+#    )
+#    if(ANDROID AND NOT CMAKE_VERSION VERSION_LESS 3.7)
+#      install(EXPORT_ANDROID_MK SDL2Targets
+#        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ndk-modules/SDL2")
+#    endif()
+#  endif()
+#
+#  if(NOT WINDOWS_STORE AND NOT SDL2_DISABLE_SDL2MAIN)
+#    install(EXPORT SDL2mainTargets
+#      FILE SDL2mainTargets.cmake
+#      NAMESPACE SDL2::
+#      DESTINATION "${SDL_INSTALL_CMAKEDIR}"
+#    )
+#    if(ANDROID AND NOT CMAKE_VERSION VERSION_LESS 3.7)
+#      install(EXPORT_ANDROID_MK SDL2mainTargets
+#        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ndk-modules/SDL2main")
+#    endif()
+#  endif()
+#
+#  if(SDL_STATIC)
+#    install(EXPORT SDL2staticTargets
+#      FILE SDL2staticTargets.cmake
+#      NAMESPACE SDL2::
+#      DESTINATION "${SDL_INSTALL_CMAKEDIR}"
+#    )
+#    if(ANDROID AND NOT CMAKE_VERSION VERSION_LESS 3.7)
+#      install(EXPORT_ANDROID_MK SDL2staticTargets
+#        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ndk-modules/SDL2-static")
+#    endif()
+#  endif()
+#
+#  if(SDL_TEST)
+#    install(EXPORT SDL2testTargets
+#      FILE SDL2testTargets.cmake
+#      NAMESPACE SDL2::
+#      DESTINATION "${SDL_INSTALL_CMAKEDIR}"
+#    )
+#    if(ANDROID AND NOT CMAKE_VERSION VERSION_LESS 3.7)
+#      install(EXPORT_ANDROID_MK SDL2testTargets
+#        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/ndk-modules/SDL2test")
+#    endif()
+#  endif()
+#
+#  install(
+#    FILES
+#      ${CMAKE_CURRENT_BINARY_DIR}/SDL2Config.cmake
+#      ${CMAKE_CURRENT_BINARY_DIR}/SDL2ConfigVersion.cmake
+#      ${SDL2_SOURCE_DIR}/cmake/sdlfind.cmake
+#    DESTINATION "${SDL_INSTALL_CMAKEDIR}"
+#    COMPONENT Devel
+#  )
+#
+#  install(
+#    FILES
+#      ${SDL2_INCLUDE_FILES}
+#      "${SDL2_BINARY_DIR}/include/SDL2/SDL_revision.h"
+#      "${SDL2_BINARY_DIR}/include-config-$<LOWER_CASE:$<CONFIG>>/SDL2/SDL_config.h"
+#    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SDL2)
+#
+#  string(TOUPPER "${CMAKE_BUILD_TYPE}" UPPER_BUILD_TYPE)
+#  if (UPPER_BUILD_TYPE MATCHES DEBUG)
+#    set(SOPOSTFIX "${SDL_CMAKE_DEBUG_POSTFIX}")
+#  else()
+#    set(SOPOSTFIX "")
+#  endif()
+#
+#  install(FILES "LICENSE.txt" DESTINATION "${LICENSES_PREFIX}")
+#  if(FREEBSD)
+#    # FreeBSD uses ${PREFIX}/libdata/pkgconfig
+#    install(FILES ${SDL2_BINARY_DIR}/sdl2.pc DESTINATION "libdata/pkgconfig")
+#  else()
+#    install(FILES ${SDL2_BINARY_DIR}/sdl2.pc
+#            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+#  endif()
+#  if(NOT (WINDOWS OR CYGWIN) OR MINGW)
+#    if(SDL_SHARED)
+#      set(SOEXT ${CMAKE_SHARED_LIBRARY_SUFFIX}) # ".so", ".dylib", etc.
+#      get_target_property(SONAME SDL2 OUTPUT_NAME)
+#      if(NOT ANDROID AND NOT MINGW AND NOT OS2)
+#          install(CODE "
+#            execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+#              \"lib${SONAME}${SOPOSTFIX}${SOEXT}\" \"libSDL2${SOPOSTFIX}${SOEXT}\"
+#              WORKING_DIRECTORY \"${SDL2_BINARY_DIR}\")")
+#          install(FILES ${SDL2_BINARY_DIR}/libSDL2${SOPOSTFIX}${SOEXT} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+#      endif()
+#    endif()
+#    install(PROGRAMS ${SDL2_BINARY_DIR}/sdl2-config DESTINATION "${CMAKE_INSTALL_BINDIR}")
+#    # TODO: what about the .spec file? Is it only needed for RPM creation?
+#    install(FILES "${SDL2_SOURCE_DIR}/sdl2.m4" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/aclocal")
+#  endif()
+#endif()
 
 ##### Uninstall target #####
 
-if(NOT SDL2_DISABLE_UNINSTALL)
-  if(NOT TARGET uninstall)
-    configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-        IMMEDIATE @ONLY)
-
-    add_custom_target(uninstall
-        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-  endif()
-endif()
+#if(NOT SDL2_DISABLE_UNINSTALL)
+#  if(NOT TARGET uninstall)
+#    configure_file(
+#        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+#        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+#        IMMEDIATE @ONLY)
+#
+#    add_custom_target(uninstall
+#        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+#  endif()
+#endif()
 
 ##### Tests subproject (must appear after the install/uninstall targets) #####
 
@@ -3728,6 +3816,10 @@ endif()
 set(CMAKE_OBJC_FLAGS "${CMAKE_OBJC_FLAGS} ${CMAKE_C_FLAGS}")
 
 # Make sure SDL2::SDL2 always exists
-if(TARGET SDL2::SDL2-static AND NOT TARGET SDL2::SDL2)
-  add_library(SDL2::SDL2 ALIAS SDL2-static)
+#if(TARGET SDL2::SDL2-static AND NOT TARGET SDL2::SDL2)
+#  add_library(SDL2::SDL2 ALIAS SDL2-static)
+#endif()
+if(TARGET sdl2.SDL2-static AND NOT TARGET sdl2.SDL2)
+  add_library(sdl2.SDL2 ALIAS sdl2.SDL2-static)
+  add_library(sdl2::SDL2 ALIAS sdl2.SDL2-static)
 endif()

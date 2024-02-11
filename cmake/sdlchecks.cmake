@@ -444,6 +444,7 @@ macro(CheckX11)
         /opt/X11/include
     )
 
+    set(CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES}")  # Fix strange compile issue when building under Linux
     if(X_INCLUDEDIR)
       list(APPEND EXTRA_CFLAGS "-I${X_INCLUDEDIR}")
       list(APPEND CMAKE_REQUIRED_INCLUDES ${X_INCLUDEDIR})
